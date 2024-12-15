@@ -1,0 +1,136 @@
+#include <p18f4520.h>
+#include <delays.h>
+void Init_LCD(void);
+void W_ctr_8bit(char);  //8-bit control word for LCD
+void W_data_8bit(char); //8-bit text data for LCD
+
+#define LCD_DATA PORTD
+#define LCD_RS PORTEbits.RE1 
+#define LCD_E PORTEbits.RE0
+#define PB1  PORTAbits.RA0
+#define PB2  PORTAbits.RA1
+#define PB3  PORTAbits.RA2
+#define PB4  PORTAbits.RA3
+
+char MESS[]="WELCOME";
+char MESS1[]="MANUAL";
+char MESS2[]="AUTO";
+char MESS3[]=" ENTER PASSWORD";
+char MESS4[]=" SELECT CHOICES";
+char MESS5[]=" 1. SOLAR";
+char MESS6[]=" 2. DIESEL";
+char MESS7[]=" 3. WIND";
+char MESS8[]=" 4. BATTERY";
+char MESS9[]=" 1.SOLAR 2.DIESEL";
+char MESS10[]="3.WIND 4.BATTERY";
+char MESS11[]=" CURRENT MODE:";
+char MESS12[]=" AUTO (SOLAR)";
+
+void main(){
+	unsigned char i,START=1,Current=0;
+	ADCON1 = 0x0F; // set port A,B and E as digital I/O
+	TRISA = 0b00011111;
+	TRISD = 0b00000000;
+	TRISE = 0b00001100;  
+
+
+	Init_LCD(); //start LCD
+	for(i=0; MESS[i]!=0 ;i++) // welcome
+	W_data_8bit(MESS[i]);
+	Delay10KTCYx(50);
+
+if(PORTAbits.RA4 == 1){
+	W_ctr_8bit(0b00000001);
+	for(i=0; MESS11[i]!=0;i++)	//current mode
+	W_data_8bit(MESS11[i]);
+	W_ctr_8bit(0b11000000);
+	for(i=0; MESS1[i]!=0;i++) //manual
+	W_data_8bit(MESS1[i]);
+	
+	
+	Delay10KTCYx(100);
+	W_ctr_8bit(0b00000001);
+	for(i=0; MESS4[i]!=0;i++)	//select choice
+	W_data_8bit(MESS4[i]);
+	Delay10KTCYx(100);
+	
+	
+	W_ctr_8bit(0b00000001);
+	for(i=0; MESS9[i]!=0;i++)	//menus
+	W_data_8bit(MESS9[i]);
+	W_ctr_8bit(0b11000000);
+	for(i=0; MESS10[i]!=0;i++)
+	W_data_8bit(MESS10[i]);
+
+	while(START == 1){
+	       if (PB1 != 1){
+    	Init_LCD();
+        for(i=0; MESS5[i]!=0;i++)
+        W_data_8bit(MESS5[i]);
+        Delay10KTCYx(500);
+        START = 0;
+      
+}
+     else if(PB2 != 1){
+    	Init_LCD();
+         for(i=0; MESS6[i]!=0;i++)
+         W_data_8bit(MESS6[i]);
+          Delay10KTCYx(500);
+          START = 0;
+     }     
+     else if(PB3 != 1){
+      	Init_LCD();
+        for(i=0; MESS7[i]!=0;i++)
+        W_data_8bit(MESS7[i]);
+        Delay10KTCYx(500);
+        START = 0;
+     }   
+     else if(PB4 != 1){
+	   Init_LCD();
+       for(i=0; MESS8[i]!=0;i++)
+       W_data_8bit(MESS8[i]);
+       Delay10KTCYx(500);
+       START = 0;
+}
+	
+	}
+		
+}
+ 
+else{
+	W_ctr_8bit(0b00000001);
+	for(i=0; MESS11[i]!=0;i++)	//current mode
+	W_data_8bit(MESS11[i]);
+	W_ctr_8bit(0b11000000);
+	for(i=0; MESS12[i]!=0;i++)   //auto
+	W_data_8bit(MESS12[i]);
+	Delay10KTCYx(100);
+}
+}//end of main
+
+/*LCD display initialization*/
+void Init_LCD() {
+	W_ctr_8bit(0b00111000); //8 bit, 2 lines, 5X7
+	W_ctr_8bit(0b00001100); //Display on, cursor on
+	W_ctr_8bit(0b00000110); // inc addr, no shift
+	W_ctr_8bit(0b00000001); // clear display
+	W_ctr_8bit(0b00000010);// Return cursor to home position
+}
+
+/* Write control word to LCD */
+void W_ctr_8bit(char x){
+LCD_RS = 0;
+LCD_E = 1;
+LCD_DATA = x;
+LCD_E = 0;
+Delay10TCYx(50); // 1ms delay
+}
+
+/* Write text data to LCD */
+void W_data_8bit(char x){
+LCD_RS = 1;
+LCD_E = 1;
+LCD_DATA = x;
+LCD_E = 0;
+Delay10TCYx(50); // 1ms delay
+}

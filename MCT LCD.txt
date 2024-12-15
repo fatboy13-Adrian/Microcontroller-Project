@@ -1,0 +1,76 @@
+#include <p18f4520.h>
+#include <delays.h>
+
+void Init_LCD(void);
+void W_ctr_8bit(char);
+void W_data_8bit(char);
+
+#define LCD_DATA PORTD
+#define LCD_RS PORTBbits.RB1
+#define LCD_E PORTBbits.RB2
+
+char MESS[] = "Welcome"
+char MESS1[]= "Password:"
+char MESS2[]= "Please Try Again!"
+char MESS3[]= "Log in Successful"
+
+void main()
+{     
+	  ADCON1=0x0f; // MAKE PORT A,B,E DIGITAL I/O
+      TRISA=0b11111111;
+	  TRISB=0b11000000;
+	  TRISC=0b10000000; // 
+	  TRISD=0b00000000; // Lcd
+	  TRISE=0b11111111;
+	  Init_LCD(); // initialise LCD
+	  
+	  
+	while(1)//loop
+	{	
+		        W_ctr_8bit(0b10000000); 
+			for (i=0; MESS[i]!=0; i++) 
+			W_data_8bit(MESS[i]);//show welcome!
+			
+			W_ctr_8bit(0b11000000);
+			for (i=0; MESS2[i]!=0; i++) 
+			W_data_8bit(MESS2[i]); //request for password
+
+	  if(inputPW==realPW)		//user input password same as real password
+	  {
+			W_ctr_8bit(0b10000000); 
+			for (i=0; MESS3[i]!=0; i++) 
+			W_data_8bit(MESS3[i]);//Logged in successful!
+	  }
+	  else
+	  {
+		    W_ctr_8bit(0b10000000); 
+			for (i=0; MESS2[i]!=0; i++) 
+			W_data_8bit(MESS2[i]);//warning please try again!
+	  }
+	}// end of loop
+}// end of main
+
+void Init_LCD()
+{
+W_ctr_8bit(0b00111000);
+W_ctr_8bit(0b00001100); 
+W_ctr_8bit(0b00000110);     
+W_ctr_8bit(0b00000001); 
+W_ctr_8bit(0b00000010);
+}
+
+void W_ctr_8bit(char x){
+LCD_RS = 0;
+LCD_E = 1;
+LCD_DATA = x;              
+LCD_E = 0;
+Delay10TCYx(20);
+}
+
+void W_data_8bit(char x){
+LCD_RS = 1;
+LCD_E = 1;
+LCD_DATA = x;             
+LCD_E = 0;
+Delay10TCYx(20);
+}

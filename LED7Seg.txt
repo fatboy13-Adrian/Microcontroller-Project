@@ -1,0 +1,56 @@
+#include <p18f4520.h>
+#include <delays.h>
+
+void LED1_On(void);
+void LED1_Off(void);
+void LED3_On(void);
+void LED3_Off(void);
+void DownSevenSegment(unsigned char);
+void UpSevenSegment(unsigned char);
+
+
+	void main()
+	{
+		ADCON1 = 0x0F;			//Set ports A,B & E as digital I/O
+		TRISB = 0b11000000;		//RB0 = SL1, RB1 = RS, RB2 = E, RB3 = SL2, RB4 / RB5 = LED
+		TRISC = 0b10000000;		//7 segment
+		TRISE = 0b11111111;		//RE0 = SW4, RE1 = SW3, RE2 = SW2
+
+		while(1)
+		{	
+			if(PORTEbits.RE0 == 1)		//when SW4 is pressed
+			{
+				LED3_On();		//turn on LED3. green light light up to simulate door open.
+				Delay10LTCYx(100);
+				
+				Delay10LTCYx(50);	//turn off LED3. green light will off to simulate door 
+			}//end of if statement
+			else
+			{
+				LED1_On();		//turn on LED1
+				Delay10KTCYx(50);
+
+				LED1_Off();		//turn off LED1
+			}//end of else statement
+		}//end of while(1)	
+}//end of main
+
+void LED3_On()
+{
+	PORTBbits.RB4 = 1;	//turn on LED1
+}//end of void LED3_On()
+
+void LED3_Off()
+{
+	PORTBbits.RB4 = 0;	//turn off LED3
+}//end of void LED3_Off()
+
+void LED1_On()
+{
+	PORTBbits.RB5 = 1;	//turn off LED3
+}//end of void LED1_On()
+
+void LED1_Off()
+{
+	PORTBbits.RB5 = 0;	//turn off LED3
+}//end of void LED1_Off()

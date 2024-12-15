@@ -1,0 +1,23 @@
+#include <p18f4520.h>
+#include <delays.h>
+
+void main()
+{
+	ADCON1=0x0f;
+	TRISA=0b11000000;
+	TRISB=0b11100001;
+	TRISC=0b10000000;
+	TRISD=0b00000000;
+	TRISE=0b11111111;
+	
+	while(1)
+	{
+		if(PORTEbits.RE1 ==0)
+		{
+			PORTAbits.RA5=1;
+			Delay10TCYx(20);
+			PORTAbits.RA5=0;
+			Delay10TCYx(20);	
+		}
+	}
+}	

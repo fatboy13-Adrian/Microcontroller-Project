@@ -1,0 +1,135 @@
+#include <p18f4520.h>
+/* Scenario:
+
+- When switch is 00, 7 segment displays nothing, no buzzer should sound, and LCD displays "TOGGLE SWITCH TO ON"
+- When switch is 01, 7 segment displays 1, buzzer sounds, and LCD displays "1. SOLAR"
+- When switch is 10, 7 segment displays 2, buzzer sounds, and LCD displays "2. WIND"
+- when switch is 11, 7 segment displays 3, buzzer sounds, and LCD displays "3. DIESEL"
+- should function continuously
+- A : Buzzer (output)
+- B : Switch (input)
+- C : LCD (output)
+- D : 7 segment (output)
+- E : LCD (output)
+*/
+
+#include <p18f4520.h>
+#include <delays.h>
+
+void Init_LCD(void);			//Initialize the LCD
+void W_ctr_8bit(char);			//8-bit Control word for LCD
+void W_data_8bit(char);			//8-bit Text Data for LCD
+
+#define LCD_DATA  PORTC
+#define LCD_RS    PORTEbits.RE0		//RS signal for LCD
+#define LCD_E     PORTEbits.RE1		//E signal for LCD
+
+char MESS0[] = " TOGGLE  SWITCH "; 	// 13 + 3 characters
+char MESS1[] = "     TO  ON     "; 	// 5 + 11 characters
+char MESS2[] = "    1. SOLAR    ";	// 8 + 8 characters
+char MESS3[] = "    2. WIND     ";	// 7  + 9 characters
+char MESS4[] = "    3. DIESEL   ";	// 9  + 7 characters
+
+void main()
+{
+	unsigned char i;
+	unsigned int cycles;
+	ADCON1 = 0x0F;			//Set ports A,B & E as digital I/O
+	TRISA = 0b11111101;		//RA1 as buzzer data output
+	TRISB = 0b11111111;		//RB1 & RB2 as switch data input
+	TRISC = 0;				//PORTC as LCD data output
+	TRISD = 0b11111111;		//RD7 & RD2 aren't use as 7seg data output
+	TRISE = 0b11111100;		//RE0 & RE1 for LCD interface RS & E
+	
+	while(1)
+{
+	if(PORTBbits.RB0==1 && PORTBbits.RB1==1)	//ungtoggled 00
+	{
+	PORTD = 0b11111111;			//blank 7segment display
+	Init_LCD();			//Init LCD 8-bit interface, mulitple line
+	for (i=0; MESS0[i]!=0; i++)
+	W_data_8bit(MESS0[i]);
+	//Delay10TCYx(50);
+	W_ctr_8bit(0b11000000);		//bring cursor to line 2 of LCD
+	for (i=0; MESS1[i]!=0; i++)
+	W_data_8bit(MESS1[i]);		
+	}
+
+	else if(PORTBbits.RB0==0 && PORTBbits.RB1==1)	//toggled 01
+	{
+	PORTD = 0b11110010; //7seg display '1'
+	for (cycles=0;cycles<100;cycles++)	//buzzer sounds
+		{
+		PORTAbits.RA1=1;
+		Delay1KTCYx(1);
+		PORTAbits.RA1=0;
+		Delay1KTCYx(1);
+		}
+		
+	Init_LCD();			//Init LCD 8-bit interface, mulitple line
+	for (i=0; MESS2[i]!=0; i++)
+	W_data_8bit(MESS2[i]);	
+	}
+
+	else if(PORTBbits.RB0==1 && PORTBbits.RB1==0)	//toggled 10
+	{
+	PORTD = 0b10001000; //7seg display '2'
+	for (cycles=0;cycles<200;cycles++)	//buzzer sounds
+		{
+		PORTAbits.RA1=1;
+		Delay1KTCYx(1);
+		PORTAbits.RA1=0;
+		Delay1KTCYx(1);
+		}
+	Init_LCD();				//Init LCD 8-bit interface, mulitple line
+	for (i=0; MESS3[i]!=0; i++)
+	W_data_8bit(MESS3[i]);
+	}
+
+	else if(PORTBbits.RB0==0 && PORTBbits.RB1==0)	//toggled 11
+	{
+	PORTD = 0b10100000; //7seg display '3'
+	for (cycles=0;cycles<50;cycles++)	//buzzer sounds
+		{
+		PORTAbits.RA1=1;
+		Delay1KTCYx(1);
+		PORTAbits.RA1=0;
+		Delay1KTCYx(1);
+		}
+	Init_LCD();				//Init LCD 8-bit interface, mulitple line
+	for (i=0; MESS4[i]!=0; i++)
+	W_data_8bit(MESS4[i]);
+	}
+
+}//end of while
+}//end of main
+
+/* LCD display initialization */
+void Init_LCD()
+{
+	W_ctr_8bit(0b00111000);
+	W_ctr_8bit(0b00001100);
+	W_ctr_8bit(0b00000110);
+	W_ctr_8bit(0b00000001);
+	W_ctr_8bit(0b00000010);
+}
+
+/* Write control word to LCD */
+void W_ctr_8bit(char x)
+{
+	LCD_RS = 0;
+	LCD_E = 1;
+	LCD_DATA = x;
+	LCD_E = 0;
+	Delay10TCYx(50);		//1ms delay
+}
+
+/* Write text data to LCD */
+void W_data_8bit(char x)
+{
+	LCD_RS = 1;
+	LCD_E = 1;
+	LCD_DATA = x;
+	LCD_E = 0;
+	Delay10TCYx(50);		//1ms delay
+}

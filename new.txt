@@ -1,0 +1,374 @@
+#include <p18f4520.h>
+#include <delays.h>
+
+unsigned int LCD(void);
+void Init_LCD(void);
+void W_ctr_8bit(char);
+void W_data_8bit(char);
+void Delay_1kcyc(void); 
+void keytone(char n);
+void keytone2(char t);
+
+#define key_DA PORTCbits.RC7
+#define key_PORTC
+#define LCD_DATA PORTD
+#define LCD_RS PORTBbits.RB1
+#define LCD_E PORTBbits.RB2
+
+unsigned char LCD_TEMP, i,j,k,m;
+char MESS1[16]="    WELCOME    ";
+char MESS2[17]="      HOME      ";
+char MESS3[15]= "XHome Security";
+char MESS6[7]= "System";
+char MESS4[12]="Please wait";
+char MESS5[11]="Loading...";
+char MESS7[13]="DOOR OPENING";
+char MSG1[16] ="Enter Password:";
+char MSG2[10]="Verifying";
+char ALERT[11] ="WARNING!!!";
+char ALERT2[15] ="*HOUSE LOCKED*";
+char ALERT3[14] = "Auto-dial:999";
+unsigned char display_number[10]= {0xC0,0xF9,0xA4,0xB0,0x99,0x92,0x82,0xF8,0x80,0x90}; // Number 0-9
+unsigned char timer=10;
+unsigned char count=0;
+int counter=0;
+int counter2=0;
+
+int a,b,c,d,e,f,g;
+unsigned int x, y;
+char password[4] = {'0','0','7','A'} ;
+char output, input, sound, n, r, z, tt, bb, gg, ll,t ;
+void main()
+{
+
+ADCON1 = 0x0F;
+TRISC = 0b10000000; //RC0-RC3 as I/p
+TRISA=0b11111111;
+TRISB=0;
+TRISE=0b11101000;// RE4 acts as I/o
+TRISD = 0; //RD7 as I/p
+
+PORTBbits.RB3 = 0;
+PORTBbits.RB5 = 0;
+{
+ 
+for(c=0;c<277;c++)
+{
+PORTEbits.RE0=0;
+Delay10TCYx(22);
+
+PORTEbits.RE0=1;
+Delay10TCYx(22);
+}
+for(d=0;d<294;d++)
+{
+PORTEbits.RE0=0;
+Delay10TCYx(21);
+
+PORTEbits.RE0=1;
+Delay10TCYx(21);
+}
+for(e=0;e<333;e++)
+{
+PORTEbits.RE0=0;
+Delay10TCYx(19);
+PORTEbits.RE0=1;
+Delay10TCYx(19);
+}
+ 
+for(f=0;f<382;f++)
+{
+PORTEbits.RE0=0;
+Delay10TCYx(18);
+PORTEbits.RE0=1;
+Delay10TCYx(18);
+}
+ 
+for(e=0;e<333;e++)
+{
+PORTEbits.RE0=1;
+Delay10TCYx(38);
+}
+for(f=0;f<382;f++)
+{
+PORTEbits.RE0=0;
+Delay10TCYx(18);
+PORTEbits.RE0=1;
+Delay10TCYx(18);
+}
+for(e=0;e<333;e++)
+{
+PORTEbits.RE0=0;
+Delay10TCYx(19);
+PORTEbits.RE0=1;
+Delay10TCYx(19);
+}
+for(d=0;d<294;d++)
+{
+PORTEbits.RE0=0;
+Delay10TCYx(21);
+PORTEbits.RE0=1;
+Delay10TCYx(21);
+}
+for(c=0;c<277;c++)
+{
+PORTEbits.RE0=0;
+Delay10TCYx(22);
+
+PORTEbits.RE0=1;
+Delay10TCYx(22);
+}
+}
+{  
+  bb = 0x00;
+  for(bb=0; bb<2; bb++)
+  {
+  Init_LCD();
+  for(i=0; i<15; i++)
+  W_data_8bit(MESS1[i]); //display WELCOME
+  Delay10KTCYx(25);
+  W_ctr_8bit(bb);
+  Delay10KTCYx(25);
+  W_ctr_8bit(0x0F);
+  
+ 
+  gg = 0xC0;
+  for(gg=0; gg<2; gg++)
+  Init_LCD();
+  W_ctr_8bit(0b11000000);
+  for(i=0; i<15; i++)
+  W_data_8bit(MESS2[i]); //display HOME
+  Delay10KTCYx(25);
+  W_ctr_8bit(bb);
+  Delay10KTCYx(25);
+  W_ctr_8bit(0x0F);
+  
+  }
+}
+{
+ 
+  //XHome Securtiy:
+  Init_LCD();
+  for(i=0; i<14; i++) // output message LOGIN 
+  W_data_8bit(MESS3[i]); // write indiviual characters to LCD screen
+  
+   //System:
+  W_ctr_8bit(0b11000000);
+  for(i=0; i<6; i++) // output message LOGIN 
+  W_data_8bit(MESS6[i]); // write indiviual characters to LCD screen
+  Delay10KTCYx(400);//1sec
+
+  Init_LCD();
+  for(i=0; i<15; i++) // output message LOGIN 
+  W_data_8bit(MSG1[i]);
+  Delay10KTCYx(25);
+}
+tt=0xC0;
+while(1)
+{
+for(a=0;a<4;a++)
+{
+while (PORTCbits.RC7==0);
+Delay100TCYx(10);
+            input = PORTA & 0x0F;
+ switch(input)
+{		
+   case 0: output='1';W_data_8bit(output);keytone(n);break;
+   case 1: output ='2';W_data_8bit(output);keytone(n);break;
+   case 2: output ='3';W_data_8bit(output);keytone(n);break;
+   case 3: output ='F';W_data_8bit(output);keytone(n);break;
+   case 4: output ='4';W_data_8bit(output);keytone2(t);break;
+   case 5:  output ='5';W_data_8bit(output);keytone2(t);break;
+   case 6:   output ='6';W_data_8bit(output);keytone2(t);break;
+   case 7:  output ='E';W_data_8bit(output);keytone2(t);break;
+   case 8:  output ='7';W_data_8bit(output);keytone(n);break;
+   case 9:  output ='8';W_data_8bit(output);keytone(n);break;
+   case 10: output ='9';W_data_8bit(output);keytone(n);break;
+   case 11: output ='D';W_data_8bit(output);keytone(n);break;
+   case 12: output ='A';W_data_8bit(output);keytone2(t);break;
+   case 13: output ='0';W_data_8bit(output);keytone2(t);break;
+   case 14: output ='B';W_data_8bit(output);keytone2(t);break;
+   case 15: output ='C';W_data_8bit(output);keytone2(t);break;
+}
+ 
+password[a] = output; 
+Delay100TCYx(50);
+W_ctr_8bit(tt);
+W_data_8bit('*');
+tt++;
+while (key_DA ==1);
+ 
+}
+if (password[0] == '0'  &&  password[1] == '0' && password[2] == '7' && password[3] == 'A')
+{
+PORTBbits.RB3=1;
+Delay100TCYx(100);
+PORTBbits.RB3=0;
+Delay100TCYx(100);;
+Init_LCD();
+  for(i=0; i<12; i++) // output message LOGIN 
+  W_data_8bit(MESS7[i]);
+  Delay10KTCYx(25);
+  W_ctr_8bit(0b00000001);
+
+ //{ do motor turning on
+  // bulb lights up and dim
+//}
+
+}
+else
+{
+  PORTBbits.RB5 = 1;
+  Delay1KTCYx(100);
+  PORTBbits.RB5 = 0;
+  Delay1KTCYx(100);
+  PORTBbits.RB5 = 1;
+  Delay1KTCYx(100);
+  PORTBbits.RB5 = 0;
+  Delay1KTCYx(100);
+  PORTBbits.RB5 = 1;
+  Delay1KTCYx(100);
+  PORTBbits.RB5 = 0;
+Delay10KTCYx(100);
+}
+  
+  Init_LCD();
+  for(i=0; i<15; i++) // output message LOGIN 
+  W_data_8bit(MSG1[i]);
+  Delay10KTCYx(25);
+  
+
+
+
+
+while(timer>0)
+{
+	count++;
+	
+	if(count ==200) 
+	{
+		timer--;
+
+				PORTBbits.RB3=1;// LED
+				Delay100TCYx(100);
+				PORTBbits.RB3=0;
+				Delay100TCYx(100);;
+			
+				Init_LCD();// LCD Display
+ 			 	for(i=0; i<12; i++) // output message LOGIN 
+ 			 	W_data_8bit(MESS7[i]);
+  				Delay10KTCYx(25);
+  				W_ctr_8bit(0b00000001);
+
+		count=0;
+	}
+		PORTEbits.RE1=1; //Reset 
+		PORTEbits.RE2=1; //Reset
+
+		PORTC=display_number[timer/10];	//light up 9-0 with divition of 10
+		PORTEbits.RE1=0; // Activate SL1
+		PORTEbits.RE2=1; // Deactivate SL2
+		Delay1KTCYx(1);// 2ms delay
+	
+		PORTC=display_number[timer%10];	//light up 9-0 with remainder of 10
+		PORTEbits.RE1=1; // Deactivate SL1
+		PORTEbits.RE2=0; // Activate SL2
+		Delay1KTCYx(1);// 2ms delay
+	
+		PORTEbits.RE1=0; //Activate SL1 to display 0
+		PORTEbits.RE2=0; //Activate SL1 to display 0
+
+		
+
+a=0;
+{
+if (PORTCbits.RC7==1)
+
+
+            input = PORTA & 0x0F;
+ switch(input)
+{
+   case 0: output='1';W_data_8bit(output);keytone(n);break;
+   case 1: output ='2';W_data_8bit(output);keytone(n);break;
+   case 2: output ='3';W_data_8bit(output);keytone(n);break;
+   case 3: output ='F';W_data_8bit(output);keytone(n);break;
+   case 4: output ='4';W_data_8bit(output);keytone2(t);break;
+   case 5:  output ='5';W_data_8bit(output);keytone2(t);break;
+   case 6:   output ='6';W_data_8bit(output);keytone2(t);break;
+   case 7:  output ='E';W_data_8bit(output);keytone2(t);break;
+   case 8:  output ='7';W_data_8bit(output);keytone(n);break;
+   case 9:  output ='8';W_data_8bit(output);keytone(n);break;
+   case 10: output ='9';W_data_8bit(output);keytone(n);break;
+   case 11: output ='D';W_data_8bit(output);keytone(n);break;
+   case 12: output ='A';W_data_8bit(output);keytone2(t);break;
+   case 13: output ='0';W_data_8bit(output);keytone2(t);break;
+   case 14: output ='B';W_data_8bit(output);keytone2(t);break;
+   case 15: output ='C';W_data_8bit(output);keytone2(t);break;
+}
+ 
+password[a] = output; 
+Delay10TCYx(50);
+W_ctr_8bit(tt);
+W_data_8bit('*');
+tt++;
+while (key_DA ==1);
+ 
+}
+a++;
+		
+	}// end of while 7se
+}
+ 
+
+}//end of main
+
+ 
+ 
+ 
+ 
+void Init_LCD()
+ {
+ 
+W_ctr_8bit(0b00111000);           //Function Set- 8-bit, 2lines, 5x7
+W_ctr_8bit(0b00001100);          //Display on, cursor on       
+W_ctr_8bit(0b00000110);          //Entry mode - inc addr, no shift
+W_ctr_8bit(0b00000001);         //Clear display
+W_ctr_8bit(0b00000010);       //Return cursor to home position
+ 
+}
+void W_ctr_8bit(char x){
+LCD_RS = 0;
+LCD_E = 1;
+LCD_DATA = x;
+LCD_E = 0;
+Delay10TCYx(50);
+}
+void W_data_8bit(char x){
+LCD_RS = 1;
+LCD_E = 1;
+LCD_DATA = x;
+LCD_E = 0;
+Delay10TCYx(50);
+}
+
+void keytone(char n)
+{
+for(n=0; n<44; n++)
+{
+  PORTEbits.RE0=0;     // turns buzzer on
+     Delay10TCYx(26);   // delay of 1ms
+     PORTEbits.RE0=1;     // turns buzzer on
+     Delay10TCYx(26);   // delay of 1ms   
+}
+}
+
+void keytone2(char t)
+{
+for(n=0; n<55; n++)
+{
+  PORTEbits.RE0=0;     // turns buzzer on
+     Delay10TCYx(23);   // delay of 1ms
+     PORTEbits.RE0=1;     // turns buzzer on
+     Delay10TCYx(23);   // delay of 1ms   
+}
+}

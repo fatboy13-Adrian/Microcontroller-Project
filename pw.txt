@@ -1,0 +1,141 @@
+#include <p18f4520.h>
+#include <delays.h>
+
+
+void Init_LCD(void);			// Initialize the LCD
+void W_ctr_8bit(char);			// 8-bit Control word for LCD
+void W_data_8bit(char);			// 8-bit Text Data for LCD
+void Delay_1kcyc(void);			// 1000 cycles delay, 1ms
+void keypad (void);
+void check_pw (void);
+void Delay_1kcyc(void);			// 1000 cycles delay, 1ms
+
+#define LCD_DATA	PORTD
+#define LCD_RS   	PORTBbits.RB1   	// RS signal for LCD
+#define LCD_E    	PORTBbits.RB2   	// E signal for LCD
+#define DA 			PORTCbits.RC7  
+#define red   		PORTEbits.RE0
+#define green   	PORTEbits.RE2
+
+unsigned char LCD_TEMP,j,k,m;
+int i;
+
+				 
+char MESS[] = "Welcome!"; 
+char MESS2[] = "Please select 1";
+char MESS3[] = "to continue..";
+char MESS4[] = "The Troll song!";
+char MESS5[] = "TROLOLOLOLOLOLOL";
+char MESS6[] = "OLOLOLOLOLOLOLOL";
+char MESS7[] = "OLOLOLOLOLOLOLOL";
+char MESS8[] = "TROLOLOLOL!";
+char MESS9[] = "THANK YOU!! <3";
+char ENTERP[] = "ENTER PASSWORD:";
+char key[4],no=0,r;
+
+void main(){
+
+	ADCON1=0x0F;			// Set ports A,B & E as digital I/O
+	TRISA = 0b11111111;		// Port A as keypad input
+	TRISB = 0b11111001;		// RB1 & 2 for LCD interface RS & E
+	TRISC = 0b11111111;
+	TRISD = 0;				// Port D as LCD data output
+	TRISE = 0b11111000;
+	
+	
+	PORTA=0b00000010;
+	PORTB=0;
+	PORTC=0b11111111;
+	PORTD=0;
+	PORTE=0;
+
+
+	Init_LCD();				// Init LCD 8-bit interface,multiple line
+		do
+		{	W_ctr_8bit(0b10001000);
+	
+		for (i=0; MESS[i] !=0; i++)   		// Output message "WELCOME" to LCD 
+        W_data_8bit(MESS[i]); 	            // Write individual character to LCD
+        Delay10KTCYx(25);	
+        W_ctr_8bit(0b00000001);	
+
+		Init_LCD();
+	keypad ();
+
+}while (DA == 0);
+		
+			
+			
+	
+		
+	
+}
+
+ //LCD display initialization 
+void Init_LCD(void){								
+	W_ctr_8bit(0b00111000);		 //Function Set - 8-bit, 2 lines, 5X7
+ 	W_ctr_8bit(0b00001100);		 //Display on, cursor on
+	W_ctr_8bit(0b00000110);		 //Entry mode - inc addr, no shift
+	W_ctr_8bit(0b00000001);		 //Clear display  
+	W_ctr_8bit(0b00000010);		 //Return cursor to home position
+	
+}
+
+ //Write control word to LCD 
+void W_ctr_8bit(char x){ 						
+   LCD_RS	= 0;				 //Logic 
+   LCD_E	= 1;				 //Logic 
+   LCD_DATA = x;
+   LCD_E	= 0;				 //Logic 0
+   Delay10TCYx(50);			 //1ms delay
+}
+
+ //Write text data to LCD 
+void W_data_8bit(char x){ 
+   LCD_RS	 = 1;				 //Logic 
+   LCD_E	 = 1;				 //Logic 
+   LCD_DATA  = x;
+   LCD_E	 = 0;				 //Logic 
+   Delay10TCYx(50);			 //1ms delay
+}
+
+
+
+void keypad (void)
+{
+char r=0,no=0, c,p;
+char kp[16]= {'1','2','3','F','4','5','6','E','7','8','9','D','A','0','B','C'};
+W_ctr_8bit(0b00000001);//clear
+Init_LCD();
+do
+	{
+for(i=0; ENTERP[i] !=0 ;i++)
+W_data_8bit(ENTERP[i]);	
+		// Init LCD 8-bit interface,multiple line
+
+}while (DA == 0);
+for (c=0; c<5; c++)
+{
+for (p=0; p<10; p++)
+{
+if (DA == 1)  
+{
+r = PORTA & 0x0f;
+key[no] = kp[r] ;
+W_data_8bit(key[no]);
+no++;
+while (DA==0);
+}
+}
+check_pw ();
+}
+}
+
+void check_pw(void)
+{
+if (key[0] == '1' && key[1] == '1' && key[2] == '1' && key[3] == '1')
+{
+red=0;
+green=1;
+}
+}

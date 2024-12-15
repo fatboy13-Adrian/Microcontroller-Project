@@ -1,0 +1,45 @@
+#include<p18f4520> 
+#include<delays.h> 
+void Init_LCD(void); 		//Initialize the LCD 
+void W_ctr_8bit(char); 		//8-bit control word for LCD 
+void W_data_8bit(char); 	//8-bit Text Data for LCD 
+void Delay_1kcyc(void); 	//1000 cycles delay, 1ms
+
+#define size 10 void() 
+#define LCD_DATA PORTE 
+#define LCD_RS PORTBbits.RB1 	//RS signal for LCD 
+#define LCD_E PORTBbits.RB2 	//E signal for LCD 
+unsigned char LCD_TEMP , i; 
+char ON[8] = “WELCOME” ; 
+void main () 
+{ 
+ADCON1=0x0F; 			//Set port E as digital I/O 
+TRISB = 0b11111001; 		//RB1 & 2 for LCD interface RS & E 
+TRISE=0; 			// Port E as LCD data output 
+ADCON0=0x0E; 			// Set to one analog the rest digital 
+TRISE=1; 			// Set Port E to input 
+TRISA=0; 			// Set Port A to output 
+do 				// Loop 
+{ 
+PORTEbit.RE0=0; 		// Port E RE0 is switch. If switch is ON 
+Init_LCD(); 			//Init LCD 8-bit interface, multiple line 
+for(i=0; i<7; i++) 		//Output message”WELCOME” to LCD 
+if 
+{ 
+PORTAbit.RA5=0; 		//If sensor ON, 
+PORTEbit.RE1=0 			// Then LED is on
+
+} 
+else 
+{ 
+PORTAbit.RA5=1; 		// If sensor is Off 
+PORTEbit.RE0=1; 		// Then LED is Off
+
+} 
+while 
+{ 
+PORTEbit.RE0=1; 		//If switch is off, sensor and LED will be off and no display 
+PORTEbit.RE3=1; 
+PORTAbit.RA5=1; 
+} 
+}
